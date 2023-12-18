@@ -75,28 +75,55 @@ fp=10000
 Ap=1
 # Calcul des échantillons du signal modulé
 # On multiplie le signal audio par le signal sinusoïdal
-signal_mod=signal_trunc*np.sin(2*np.pi*fp*np.arange(len(signal_trunc))/fe)
+signal_porteuse=Ap*np.sin(2*np.pi*fp*np.arange(len(signal_trunc))/fe)
+signal_mod=signal_trunc*signal_porteuse
 
 S = 1/N*np.fft.fftshift(np.fft.fft(signal_mod))
 S_mag = np.abs(S)
 # conversion en dBm
 S_eff=S_mag/np.sqrt(2)
-S_dbm=10*np.log10(np.square(S_eff)/50*1000)
+S_mod_dbm=10*np.log10(np.square(S_eff)/50*1000)
 
+
+# FIGURE 1 : Affichage du signal de la porteuse et du signal modulé AM
 # Création d'une figure avec 2 axes au format 2 lignes 1 colonne
 fig, ax = plt.subplots(2,1, figsize=(15, 10))
-# Affichage du signal et sa FFT
-ax[0].plot(signal_mod)
-ax[1].plot(f, S_dbm)
-# on affichera le spectre de -20kHz à 20kHz (donc en Bilatéral)
-ax[1].set_xlim([-20000,20000])
+# Affichage du signal de la porteuse et le signal modulé AM
+ax[0].plot(signal_porteuse[0:1000])
+ax[1].plot(signal_mod[0:1000])
+ax[1].plot(signal_trunc[0:1000])
+#affichage de la graduation en secondes sur l'axe des abscisses (conversion en secondes)
+graduation=np.arange(0,1000,1000/fe/6)
+#arrondi à 3 chiffres après la virgule
+graduation=np.around(graduation,3)
+#affichage de la graduation
+ax[0].set_xticklabels(graduation)
+ax[1].set_xticklabels(graduation)
+
+
 ax[0].grid()
-ax[0].set_title('Signal audio modulé', fontsize=14)
+ax[0].set_title('Signal de la porteuse', fontsize=14)
 ax[1].grid()
-ax[1].set_title('FFT bilatérale du Signal audio modulé', fontsize=14)
+ax[1].set_title('Signal audio modulé AM', fontsize=14)
 # pour afficher la figure
 plt.show()
  
+# FIGURE 2 : Affichage de la FFT du signal audio et du signal modulé AM
+# Création d'une figure avec 2 axes au format 2 lignes 1 colonne
+fig, ax = plt.subplots(2,1, figsize=(15, 10))
+# Affichage de la FFT du signal audio et du signal modulé AM
+ax[0].plot(f, S_dbm)
+ax[1].plot(f, S_mod_dbm)
+# on affichera le spectre de -20kHz à 20kHz (donc en Bilatéral)
+ax[1].set_xlim([-20000,20000])
+ax[0].set_xlim([-20000,20000])
+ax[0].grid()
+ax[0].set_title('FFT bilatérale du Signal audio', fontsize=14)
+ax[1].grid()
+ax[1].set_title('FFT bilatérale du Signal audio modulé AM', fontsize=14)
+# pour afficher la figure
+plt.show()
+
 # Etape 2 : Démodulation synchrone du signal audio AM
 #====================================================
 # On multiplie le signal audio modulé par le signal sinusoïdal
