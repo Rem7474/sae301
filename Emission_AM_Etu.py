@@ -68,6 +68,8 @@ S_mag = np.abs(S)
 # conversion en dBm
 S_eff=S_mag/np.sqrt(2)
 S_mod_dbm=10*np.log10(np.square(S_eff)/50*1000)
+
+
 # FIGURE 1 : Affichage du signal de la porteuse et du signal modulé AM
 # Création d'une figure avec 2 axes au format 2 lignes 1 colonne
 fig, ax = plt.subplots(2,1, figsize=(15, 10))
@@ -98,58 +100,73 @@ ax[1].plot(f, S_mod_dbm)
 ax[1].set_xlim([-20000,20000])
 ax[0].set_xlim([-20000,20000])
 ax[0].grid()
-ax[0].set_title('FFT bilatérale du Signal audio', fontsize=14)
+ax[0].set_title('DSP bilatérale du Signal audio', fontsize=14)
 ax[1].grid()
-ax[1].set_title('FFT bilatérale du Signal audio modulé AM', fontsize=14)
+ax[1].set_title('DSP bilatérale du Signal audio modulé AM', fontsize=14)
 
 
 # Etape 2 : Démodulation synchrone du signal audio AM
 #====================================================
 # On multiplie le signal audio modulé par le signal sinusoïdal
 signal_dem1=signal_mod*np.sin(2*np.pi*fp*np.arange(len(signal_trunc))/fe)
+
+#affichage du signal modulé AM et du signal démodulé AM
+fig, ax = plt.subplots(2,1, figsize=(15, 10))
+
+# FIGURE 3 : Affichage du signal audio modulé AM et du signal audio multiplié par la porteuse
+ax[0].plot(signal_mod)
+ax[1].plot(signal_dem1)
+ax[0].set_xlim([0,1000])
+ax[1].set_xlim([0,1000])
+ax[0].grid()
+ax[0].set_title('Signal audio modulé AM', fontsize=14)
+ax[1].grid()
+ax[1].set_title('Signal audio multiplié par la porteuse', fontsize=14)
+
 # calcul de la DSP du signal démodulé
 S = 1/N*np.fft.fftshift(np.fft.fft(signal_dem1))
-S_mag = np.abs(S)
-
-
-#affichage du signal démodulé
-fig, ax = plt.subplots(2,1, figsize=(15, 10))
-# Affichage du signal et sa FFT
-ax[0].plot(signal_dem1)
-ax[1].plot(f, S_dbm)
-# on affichera le spectre de -20kHz à 20kHz (donc en Bilatéral)
-ax[1].set_xlim([-30000,30000])
-ax[0].grid()
-ax[0].set_title('Signal audio démodulé', fontsize=14)
-ax[1].grid()
-ax[1].set_title('FFT bilatérale du Signal audio démodulé', fontsize=14)
-
+S_dem1_abs = np.abs(S)
+# conversion en dBm
+S_eff=S_dem1_abs/np.sqrt(2)
+S_dem1_dbm=10*np.log10(np.square(S_eff)/50*1000)
 
 # filtrage du signal démodulé avec un filtre de butterworth
 # on utilise la fonction scipy.signal.butter()
 ordre=8
 fc=10000
 b, a = scipy.signal.butter(ordre, fc, 'low', fs=fe, output='ba')
-signal_dem2 = scipy.signal.lfilter(b, a, signal_dem1)
-# calcul de la DSP du signal démodulé
-S = 1/N*np.fft.fftshift(np.fft.fft(signal_dem2))
-S_mag = np.abs(S)
-# conversion en dBm
-S_eff=S_mag/np.sqrt(2)
-S_dbm=10*np.log10(np.square(S_eff)/50*1000)
-#affichage du signal démodulé
+signal_dem2 = scipy.signal.lfilter(b, a, S_dem1_dbm)
+
+# FIGURE 4 : Affichage de la DSP du signal audio et du signal audio démodulé
 fig, ax = plt.subplots(2,1, figsize=(15, 10))
-# Affichage du signal et sa FFT
-ax[0].plot(signal_dem2)
-ax[1].plot(f, S_dbm)
+ax[0].plot(f, S_dbm)
+ax[1].plot(f, S_dem1_dbm)
 # on affichera le spectre de -20kHz à 20kHz (donc en Bilatéral)
-ax[1].set_xlim([-20000,20000])
+ax[0].set_xlim([-30000,30000])
+ax[1].set_xlim([-30000,30000])
 ax[0].grid()
-ax[0].set_title('Signal audio démodulé filtré', fontsize=14)
+ax[0].set_title('DSP du signal audio', fontsize=14)
 ax[1].grid()
-ax[1].set_title('FFT bilatérale du Signal audio démodulé filtré', fontsize=14)
+ax[1].set_title('DSP du Signal audio démodulé', fontsize=14)
 
 
+# calcul de la DSP du signal démodulé avec le filtre passe-bas
+S = 1/N*np.fft.fftshift(np.fft.fft(signal_dem2))
+S_dem2_abs = np.abs(S)
+# conversion en dBm
+S_eff=S_dem2_abs/np.sqrt(2)
+S_dem2_dbm=10*np.log10(np.square(S_eff)/50*1000)
+
+
+# FIGURE 5 : Affichage de la DSP du signal audio démodulé avec le filtre passe-bas
+fig, ax = plt.subplots(2,1, figsize=(15, 10))
+#affichage des deux signaux
+ax[0].plot(signal_dem2)
+ax[0].set_xlim([-30000,30000])
+ax[0].grid()
+ax[0].set_title('DSP du Signal audio démodulé avec filtre passe-bas', fontsize=14)
+
+# FIGURE 6 : Affichage du signal audio et du signal démodulé
 # affichage du signal dem1 et dem2 sur la même figure (1seul figure)
 fig, ax = plt.subplots(2,1, figsize=(15, 10))
 #affichage des deux signaux
@@ -159,3 +176,4 @@ ax[0].grid()
 ax[0].set_title('Signal audio démodulé', fontsize=14)
 #affichage du graphique
 plt.show()
+
