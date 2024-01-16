@@ -130,12 +130,7 @@ S_dem1_abs = np.abs(S)
 S_eff=S_dem1_abs/np.sqrt(2)
 S_dem1_dbm=10*np.log10(np.square(S_eff)/50*1000)
 
-# filtrage du signal démodulé avec un filtre de butterworth
-# on utilise la fonction scipy.signal.butter()
-ordre=8
-fc=10000
-b, a = scipy.signal.butter(ordre, fc, 'low', fs=fe, output='ba')
-signal_dem2 = scipy.signal.lfilter(b, a, S_dem1_dbm)
+
 
 # FIGURE 4 : Affichage de la DSP du signal audio et du signal audio démodulé
 fig, ax = plt.subplots(2,1, figsize=(15, 10))
@@ -149,8 +144,13 @@ ax[0].set_title('DSP du signal audio', fontsize=14)
 ax[1].grid()
 ax[1].set_title('DSP du Signal audio démodulé', fontsize=14)
 
-
-# calcul de la DSP du signal démodulé avec le filtre passe-bas
+# filtrage du signal démodulé avec un filtre de butterworth
+# on utilise la fonction scipy.signal.butter()
+ordre=8
+fc=10000
+b, a = scipy.signal.butter(ordre, fc, 'low', fs=fe, output='ba')
+signal_dem2 = scipy.signal.lfilter(b, a, signal_dem1)
+# calcul de la DSP du signal démodulé
 S = 1/N*np.fft.fftshift(np.fft.fft(signal_dem2))
 S_dem2_abs = np.abs(S)
 # conversion en dBm
@@ -159,21 +159,39 @@ S_dem2_dbm=10*np.log10(np.square(S_eff)/50*1000)
 
 
 # FIGURE 5 : Affichage de la DSP du signal audio démodulé avec le filtre passe-bas
-fig, ax = plt.subplots(2,1, figsize=(15, 10))
+fig, ax = plt.subplots(1,1, figsize=(15, 10))
 #affichage des deux signaux
-ax[0].plot(signal_dem2)
-ax[0].set_xlim([-30000,30000])
-ax[0].grid()
-ax[0].set_title('DSP du Signal audio démodulé avec filtre passe-bas', fontsize=14)
+ax.plot(f,S_dem2_dbm)
+ax.set_xlim([-30000,30000])
+ax.grid()
+ax.set_title('DSP du Signal audio démodulé avec filtre passe-bas', fontsize=14)
 
 # FIGURE 6 : Affichage du signal audio et du signal démodulé
 # affichage du signal dem1 et dem2 sur la même figure (1seul figure)
-fig, ax = plt.subplots(2,1, figsize=(15, 10))
+fig, ax = plt.subplots(1,1, figsize=(15, 10))
 #affichage des deux signaux
-ax[0].plot(signal_trunc)
-ax[0].plot(signal_dem2)
-ax[0].grid()
-ax[0].set_title('Signal audio démodulé', fontsize=14)
+ax.plot(signal_trunc)
+ax.plot(signal_dem2)
+ax.grid()
+ax.set_title('Signal audio démodulé', fontsize=14)
+
+#FIGURE 7 : Effet d'une erreur de synchronisation de 0.1Hz
+fp_erreur=fp+0.1
+signal_dem_erreur=signal_mod*np.sin(2*np.pi*fp_erreur*np.arange(len(signal_trunc))/fe)
+# filtrage du signal démodulé avec un filtre de butterworth
+# on utilise la fonction scipy.signal.butter()
+ordre=8
+fc=10000
+b, a = scipy.signal.butter(ordre, fc, 'low', fs=fe, output='ba')
+signal_dem_erreur_lowpass = scipy.signal.lfilter(b, a, signal_dem_erreur)
+
+fig, ax = plt.subplots(1,1, figsize=(15, 10))
+#affichage des deux signaux
+ax.plot(signal_dem2)
+ax.plot(signal_dem_erreur_lowpass)
+ax.grid()
+ax.set_title('Signal audio démodulé avec erreur de synchronisation de 0.1Hz', fontsize=14)
+
 #affichage du graphique
 plt.show()
 
