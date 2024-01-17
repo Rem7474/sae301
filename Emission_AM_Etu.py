@@ -82,7 +82,9 @@ graduation=np.arange(0,1000,1000/fe/6)
 #arrondi à 3 chiffres après la virgule
 graduation=np.around(graduation,3)
 #affichage de la graduation
+#ax[0].set_xticks([])
 ax[0].set_xticklabels(graduation)
+#ax[1].set_xticks([])
 ax[1].set_xticklabels(graduation)
 ax[0].grid()
 ax[0].set_title('Signal de la porteuse', fontsize=14)
